@@ -5,13 +5,13 @@ from twisted.internet import reactor
 class ServiceCP(Protocol):
 	def connectionMade(self):
 		print "client connection made"
-		instanceDataCF = DataCF()
-		reactor.listenTCP(42013, instanceDataCF)
-		self.datacp = instanceDataCF.myconn
+#		instanceDataCF = DataCF()
+#		reactor.listenTCP(42013, instanceDataCF)
+#		self.datacp = instanceDataCF.myconn
 
 	def dataReceived(self, data):
 		print "got data: ", data
-		datacp.transport.write(data)
+#		datacp.transport.write(data)
 
 class CommandCP(Protocol):
 	def connectionMade(self):
@@ -25,13 +25,13 @@ class DataCP(Protocol):
 	def connectionMade(self):
 		print "data connection made"
 		reactor.connectTCP("student00.cse.nd.edu", 22, ServiceCF())
-		instanceServiceCF = ServiceCF()
-		reactor.listenTCP(40013, instanceServiceCF)
-		self.servicecp = instanceServiceCF.myconn
+#		instanceServiceCF = ServiceCF()
+#		reactor.listenTCP(40013, instanceServiceCF)
+#		self.servicecp = instanceServiceCF.myconn
 
 	def dataReceived(self, data):
 		print "got data: ", data
-		servicecp.transport.write(data)
+#		servicecp.transport.write(data)
 
 class ServiceCF(ClientFactory):
 	def __init__(self):

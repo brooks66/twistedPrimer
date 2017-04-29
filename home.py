@@ -15,7 +15,7 @@ class ClientCP(Protocol):
 
 	def dataReceived(self, data):
 		print "got data: ", data
-		datacp.transport.write(data)
+		self.datacp.transport.write(data)
 
 class CommandCP(Protocol):
 	def connectionMade(self):
@@ -27,13 +27,13 @@ class CommandCP(Protocol):
 class DataCP(Protocol):
 	def connectionMade(self):
 		print "data connection made"
-		instanceClientCF = ClientCF()
-		reactor.listenTCP(40013, instanceClientCF)
-		self.clientcp = instanceClientCF.myconn
+#		instanceClientCF = ClientCF()
+#		reactor.listenTCP(40013, instanceClientCF)
+#		self.clientcp = instanceClientCF.myconn
 
 	def dataReceived(self, data):
 		print "got data: ", data
-		clientcp.transport.write(data)
+#		clientcp.transport.write(data)
 
 class ClientCF(ClientFactory):
 	def __init__(self, commandCP):
