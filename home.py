@@ -10,36 +10,34 @@ class ClientCP(Protocol):
 	def connectionMade(self):
 		print "client connection made"
 		self.commandcp.transport.write("begin data connect")
-		instanceDataCF = DataCF()
+		instanceDataCF = DataCF(self)
 		reactor.listenTCP(42013, instanceDataCF)
 		self.datacp = instanceDataCF.myconn
 
 	def dataReceived(self, data):
-		print "got data: ", data
+#		print "got data: ", data
 		self.datacp.leQueue.put(data)
-#		self.datacp.transport.write(data)
 
 class CommandCP(Protocol):
 	def connectionMade(self):
 		print "command connection made"
 
 	def dataReceived(self, data):
-		print "got data: ", data
+#		print "got data: ", data
+		pass
 
 class DataCP(Protocol):
-	def __init__(self):
+	def __init__(self, clientCP):
 		self.leQueue = DeferredQueue()
+		self.clientcp = clientCP
 
 	def connectionMade(self):
 		print "data connection made"
 		self.startForwarding()
-#		instanceClientCF = ClientCF()
-#		reactor.listenTCP(40013, instanceClientCF)
-#		self.clientcp = instanceClientCF.myconn
 
 	def dataReceived(self, data):
-		print "got data: ", data
-#		clientcp.transport.write(data)
+#		print "got data: ", data
+		self.clientcp.transport.write(data)
 
 	def forwardData(self, data):
 		self.transport.write(data)
@@ -63,8 +61,8 @@ class CommandCF(ClientFactory):
 		return self.myconn
 
 class DataCF(ClientFactory):
-	def __init__(self):
-		self.myconn = DataCP()
+	def __init__(self, clientCP):
+		self.myconn = DataCP(clientCP)
 
 	def buildProtocol(self, addr):
 		return self.myconn

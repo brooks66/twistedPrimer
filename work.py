@@ -4,19 +4,17 @@ from twisted.internet import reactor
 from twisted.internet.defer import *
 
 class ServiceCP(Protocol):
-	def __init__(self):
+	def __init__(self, dataCP):
 		self.leQueue = DeferredQueue()
+		self.datacp = dataCP
 
 	def connectionMade(self):
 		print "client connection made"
 		self.startForwarding()
-#		instanceDataCF = DataCF()
-#		reactor.listenTCP(42013, instanceDataCF)
-#		self.datacp = instanceDataCF.myconn
 
 	def dataReceived(self, data):
-		print "got data: ", data
-#		datacp.transport.write(data)
+#		print "got data: ", data
+		self.datacp.transport.write(data)
 
 	def forwardData(self, data):
 		self.transport.write(data)
@@ -30,20 +28,20 @@ class CommandCP(Protocol):
 		print "command connection made"
 
 	def dataReceived(self, data):
-		print "got data: ", data
-		reactor.connectTCP("ash.campus.nd.edu", 42013, DataCF())
+#		print "got data: ", data
+		if data == "begin data connect":
+			reactor.connectTCP("ash.campus.nd.edu", 42013, DataCF())
 
 class DataCP(Protocol):
 	def connectionMade(self):
 		print "data connection made"
-		instanceServiceCF = ServiceCF()
+		instanceServiceCF = ServiceCF(self)
 		self.servicecp = instanceServiceCF.myconn
 		reactor.connectTCP("student00.cse.nd.edu", 22, instanceServiceCF)
 
 	def dataReceived(self, data):
-		print "got data: ", data
+#		print "got data: ", data
 		self.servicecp.leQueue.put(data)
-#		self.servicecp.transport.write(data)
 
 	def forwardData(self, data):
 		self.transport.write(data)
@@ -53,8 +51,8 @@ class DataCP(Protocol):
 		self.leQueue.get().addCallback(self.forwardData)
 
 class ServiceCF(ClientFactory):
-	def __init__(self):
-		self.myconn = ServiceCP()
+	def __init__(self, dataCP):
+		self.myconn = ServiceCP(dataCP)
 
 	def buildProtocol(self, addr):
 		return self.myconn
