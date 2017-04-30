@@ -1,6 +1,7 @@
 from twisted.internet.protocol import ClientFactory
 from twisted.internet.protocol import Protocol
 from twisted.internet import reactor
+from twisted.internet.defer import *
 
 class ClientCP(Protocol):
 	def __init__(self, commandCP):
@@ -15,7 +16,8 @@ class ClientCP(Protocol):
 
 	def dataReceived(self, data):
 		print "got data: ", data
-		self.datacp.transport.write(data)
+		self.datacp.leQueue.put(data)
+#		self.datacp.transport.write(data)
 
 class CommandCP(Protocol):
 	def connectionMade(self):
@@ -25,8 +27,12 @@ class CommandCP(Protocol):
 		print "got data: ", data
 
 class DataCP(Protocol):
+	def __init__(self):
+		self.leQueue = DeferredQueue()
+
 	def connectionMade(self):
 		print "data connection made"
+		self.startForwarding()
 #		instanceClientCF = ClientCF()
 #		reactor.listenTCP(40013, instanceClientCF)
 #		self.clientcp = instanceClientCF.myconn
@@ -34,6 +40,13 @@ class DataCP(Protocol):
 	def dataReceived(self, data):
 		print "got data: ", data
 #		clientcp.transport.write(data)
+
+	def forwardData(self, data):
+		self.transport.write(data)
+		self.leQueue.get().addCallback(self.forwardData)
+
+	def startForwarding(self):
+		self.leQueue.get().addCallback(self.forwardData)
 
 class ClientCF(ClientFactory):
 	def __init__(self, commandCP):
@@ -60,3 +73,4 @@ instanceCommandCF = CommandCF()
 reactor.listenTCP(41013, instanceCommandCF)
 reactor.listenTCP(40013, ClientCF(instanceCommandCF.myconn))
 reactor.run()
+
